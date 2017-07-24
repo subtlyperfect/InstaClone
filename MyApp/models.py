@@ -13,3 +13,14 @@ class UserModel(models.Model):
     password = models.CharField(max_length=20)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateField(auto_now=True)
+
+
+# Model to save the session related details in the database.
+
+class SessionToken(models.Model):
+    user = models.ForeignKey(UserModel)
+    session_token = models.CharField(max_length=255)
+    created_on = models.DateTimeField(auto_now_add=True)
+    is_valid = models.BooleanField(default=True)
+    def create_token(self):
+        self.session_token = uuid.uuid4()

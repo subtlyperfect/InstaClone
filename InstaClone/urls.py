@@ -15,7 +15,7 @@ Including another URLconf
 """
 # Importing necessary views from views.py
 
-from MyApp.views import sign_up_view, login_view, post_view, feed_view, comment_view, like_view, logout_view
+from MyApp.views import sign_up_view, login_view
 from django.conf.urls import url
 from django.contrib import admin
 
@@ -23,11 +23,6 @@ from django.contrib import admin
 
 urlpatterns = [
 
-    url('logout', logout_view, name="logout"),
-    url('post/', post_view),
-    url('feed/', feed_view),
-    url('like/', like_view),
-    url('comment/', comment_view),
     url(r'^admin/', admin.site.urls),
     url('login/', login_view),
     url('', sign_up_view)

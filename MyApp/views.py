@@ -3,13 +3,13 @@
 # Importing necessary modules and functions.
 
 from __future__ import unicode_literals
-from models import UserModel
+from models import UserModel, SessionToken
 from django.http import HttpResponse
 from datetime import timedelta
 from clarifai.rest import ClarifaiApp
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from forms import SignUpForm
+from forms import SignUpForm, LoginForm
 from django.contrib.auth.hashers import make_password, check_password
 from InstaClone.settings import BASE_DIR
 from imgurpython import ImgurClient
@@ -55,3 +55,38 @@ def sign_up_view(request):
         form = SignUpForm()
 
     return render(request, 'index.html', {'form' : form})
+
+
+# Controller for user login.
+
+def login_view(request):
+    response_data = {}
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = UserModel.objects.filter(username=username).first()
+
+            if user:
+
+                if check_password(password, user.password):
+                    token = SessionToken(user=user)
+                    token.create_token()
+                    token.save()
+                    response = redirect('feed/')
+                    response.set_cookie(key='session_token', value=token.session_token)
+                    return response
+
+                else:
+                    ctypes.windll.user32.MessageBoxW(0, u"Invalid Credentials!", u"Error", 0)
+                    response_data['message'] = 'Please try again!'
+            else:
+                ctypes.windll.user32.MessageBoxW(0, u"Invalid Credentials!", u"Error", 0)
+
+
+    elif request.method == 'GET':
+        form = LoginForm()
+
+    response_data['form'] = form
+    return render(request, 'login.html', response_data)
