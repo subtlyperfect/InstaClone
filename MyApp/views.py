@@ -48,6 +48,9 @@ def sign_up_view(request):
                 print(response.body)
                 print(response.headers)
 
+                ctypes.windll.user32.MessageBoxW(0, u"Congratulations!",
+                                                 u"You have successfully signed up.", 0)
+
                 response = redirect('feed/')
                 return response
     elif request.method == "GET":
@@ -139,6 +142,9 @@ def post_view(request):
 
                 add_category(post)
 
+                ctypes.windll.user32.MessageBoxW(0, u"Well done!",
+                                                 u"Your new post is ready.", 0)
+
                 return redirect('/feed/')
 
         else:
@@ -181,6 +187,9 @@ def like_view(request):
             if not existing_like:
                 like = LikeModel.objects.create(post_id=post_id, user=user)
 
+                ctypes.windll.user32.MessageBoxW(0, u"Liked!",
+                                                 u"Keep scrolling for more.", 0)
+
                 sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
                 from_email = Email("surbhi.sood2@gmail.com")
                 to_email = Email(like.post.user.email)
@@ -212,6 +221,9 @@ def comment_view(request):
             comment_text = form.cleaned_data.get('comment_text')
             comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text)
             comment.save()
+
+            ctypes.windll.user32.MessageBoxW(0, u"Comment added!",
+                                             u"Keep scrolling for more.", 0)
 
             sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
             from_email = Email("surbhi.sood2@gmail.com")
@@ -249,5 +261,9 @@ def check_validation(request):
 def logout_view(request):
     request.session.modified = True
     response = redirect("/login/")
+
+    ctypes.windll.user32.MessageBoxW(0, u"Thank you!",
+                                     u"You've been logged out successfully!", 0)
+
     response.delete_cookie(key="session_token")
     return response
