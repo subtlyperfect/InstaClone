@@ -3,7 +3,7 @@
 # Importing necessary modules and functions.
 
 from __future__ import unicode_literals
-from models import UserModel, SessionToken
+from models import UserModel, SessionToken, LikeModel, CommentModel, CategoryModel
 from django.http import HttpResponse
 from datetime import timedelta
 from clarifai.rest import ClarifaiApp
@@ -90,3 +90,144 @@ def login_view(request):
 
     response_data['form'] = form
     return render(request, 'login.html', response_data)
+
+
+# Controller for adding a new category.
+
+def add_category(post):
+    app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
+
+    # Logo model
+
+    model = app.models.get('logo')
+    response = model.predict_by_url(url=post.image_url)
+
+    if response["status"]["code"] == 10000:
+        if response["outputs"]:
+            if response["outputs"][0]["data"]:
+                if response["outputs"][0]["data"]["concepts"]:
+                    for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
+                        category = CategoryModel(post=post, category_text = response["outputs"][0]["data"]["concepts"][index]["name"])
+                        category.save()
+                else:
+                    print "No concepts list error."
+            else:
+                print "No data list error."
+        else:
+            print "No output lists error."
+    else:
+        print "Response code error."
+
+
+# Controller for creating a new post.
+
+def post_view(request):
+    user = check_validation(request)
+
+    if user:
+        if request.method == 'POST':
+            form = PostForm(request.POST, request.FILES)
+            if form.is_valid():
+                image = form.cleaned_data.get('image')
+                caption = form.cleaned_data.get('caption')
+                post = PostModel(user=user, image=image, caption=caption)
+                post.save()
+
+                path = str(BASE_DIR + post.image.url)
+
+                client = ImgurClient(CLIENT_ID, CLIENT_SECRET)
+                post.image_url = client.upload_from_path(path, anon=True)["link"]
+                post.save()
+
+                add_category(post)
+
+                return redirect('/feed/')
+
+        else:
+            form = PostForm()
+        return render(request, 'post.html', {'form' : form})
+    else:
+        return redirect('/login/')
+
+
+# Controller for redirecting the user to news feed once he logs in.
+
+def feed_view(request):
+    user = check_validation(request)
+    if user:
+
+        posts = PostModel.objects.all().order_by('-created_on')
+
+        for post in posts:
+            existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
+            if existing_like:
+                post.has_liked = True
+
+        return render(request, 'feed.html', {'posts': posts})
+    else:
+
+        return redirect('/login/')
+
+
+# Controller for posting a like.
+
+def like_view(request):
+    user = check_validation(request)
+    if user and request.method == 'POST':
+        form = LikeForm(request.POST)
+        if form.is_valid():
+            post_id = form.cleaned_data.get('post').id
+
+            existing_like = LikeModel.objects.filter(post_id=post_id, user=user).first()
+
+            if not existing_like:
+                like = LikeModel.objects.create(post_id=post_id, user=user)
+
+                sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
+                from_email = Email("surbhi.sood2@gmail.com")
+                to_email = Email(like.post.user.email)
+                subject = "Ready to earn!"
+                content = Content("text/plain", "You have a new like on your post. Keep posting!")
+                mail = Mail(from_email, subject, to_email, content)
+                response = sg.client.mail.send.post(request_body=mail.get())
+                print(response.status_code)
+                print(response.body)
+                print(response.headers)
+
+            else:
+                existing_like.delete()
+
+            return redirect('/feed/')
+
+    else:
+        return redirect('/login/')
+
+
+# Controller for posting a comment.
+
+def comment_view(request):
+    user = check_validation(request)
+    if user and request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            post_id = form.cleaned_data.get('post').id
+            comment_text = form.cleaned_data.get('comment_text')
+            comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text)
+            comment.save()
+
+            sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
+            from_email = Email("surbhi.sood2@gmail.com")
+            to_email = Email(comment.post.user.email)
+            subject = "Ready to earn!"
+            content = Content("text/plain", "You have a new comment on your post. Keep posting!")
+            mail = Mail(from_email, subject, to_email, content)
+            response = sg.client.mail.send.post(request_body=mail.get())
+            print(response.status_code)
+            print(response.body)
+            print(response.headers)
+
+            return redirect('/feed/')
+        else:
+            return redirect('/feed/')
+    else:
+        return redirect('/login')
