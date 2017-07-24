@@ -231,3 +231,25 @@ def comment_view(request):
             return redirect('/feed/')
     else:
         return redirect('/login')
+
+
+# For validating the session
+
+def check_validation(request):
+    if request.COOKIES.get('session_token'):
+        session = SessionToken.objects.filter(session_token=request.COOKIES.get('session_token')).first()
+        if session:
+            time_to_live = session.created_on + timedelta(days=1)
+            if time_to_live > timezone.now():
+                return session.user
+    else:
+        return None
+
+
+# For destroying a session
+
+def logout_view(request):
+    request.session.modified = True
+    response = redirect("/login/")
+    response.delete_cookie(key="session_token")
+    return response
