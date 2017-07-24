@@ -3,13 +3,12 @@
 # Importing necessary modules and functions.
 
 from __future__ import unicode_literals
-from models import UserModel, SessionToken, LikeModel, CommentModel, CategoryModel
-from django.http import HttpResponse
+from models import UserModel, SessionToken, LikeModel, CommentModel, CategoryModel, PostModel
 from datetime import timedelta
 from clarifai.rest import ClarifaiApp
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from forms import SignUpForm, LoginForm
+from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm
 from django.contrib.auth.hashers import make_password, check_password
 from InstaClone.settings import BASE_DIR
 from imgurpython import ImgurClient
@@ -54,7 +53,7 @@ def sign_up_view(request):
     elif request.method == "GET":
         form = SignUpForm()
 
-    return render(request, 'index.html', {'form' : form})
+    return render(request, 'index.html', {'form': form})
 
 
 # Controller for user login.
@@ -83,7 +82,6 @@ def login_view(request):
                     response_data['message'] = 'Please try again!'
             else:
                 ctypes.windll.user32.MessageBoxW(0, u"Invalid Credentials!", u"Error", 0)
-
 
     elif request.method == 'GET':
         form = LoginForm()
@@ -145,7 +143,7 @@ def post_view(request):
 
         else:
             form = PostForm()
-        return render(request, 'post.html', {'form' : form})
+        return render(request, 'post.html', {'form': form})
     else:
         return redirect('/login/')
 
