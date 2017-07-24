@@ -11,6 +11,7 @@ from django.shortcuts import render, redirect
 from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm
 from django.contrib.auth.hashers import make_password, check_password
 from InstaClone.settings import BASE_DIR
+from keys import CLARIFAI_API_KEY, CLIENT_SECRET, CLIENT_ID, SENDGRID_API_KEY
 from imgurpython import ImgurClient
 import sendgrid
 import ctypes
@@ -48,8 +49,8 @@ def sign_up_view(request):
                 print(response.body)
                 print(response.headers)
 
-                ctypes.windll.user32.MessageBoxW(0, u"Congratulations!",
-                                                 u"You have successfully signed up.", 0)
+                ctypes.windll.user32.MessageBoxW(0, u"You have successfully signed up.",
+                                                 u"Congratulations!", 0)
 
                 response = redirect('feed/')
                 return response
@@ -100,7 +101,7 @@ def add_category(post):
 
     # Logo model
 
-    model = app.models.get('logo')
+    model = app.models.get('general-v1.3')
     response = model.predict_by_url(url=post.image_url)
 
     if response["status"]["code"] == 10000:
@@ -142,8 +143,8 @@ def post_view(request):
 
                 add_category(post)
 
-                ctypes.windll.user32.MessageBoxW(0, u"Well done!",
-                                                 u"Your new post is ready.", 0)
+                ctypes.windll.user32.MessageBoxW(0, u"Your new post is ready.",
+                                                 u"Well done!", 0)
 
                 return redirect('/feed/')
 
@@ -187,13 +188,13 @@ def like_view(request):
             if not existing_like:
                 like = LikeModel.objects.create(post_id=post_id, user=user)
 
-                ctypes.windll.user32.MessageBoxW(0, u"Liked!",
-                                                 u"Keep scrolling for more.", 0)
+                ctypes.windll.user32.MessageBoxW(0, u"Keep scrolling for more.",
+                                                 u"Liked!", 0)
 
                 sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
                 from_email = Email("surbhi.sood2@gmail.com")
                 to_email = Email(like.post.user.email)
-                subject = "Ready to earn!"
+                subject = "Upload to win!"
                 content = Content("text/plain", "You have a new like on your post. Keep posting!")
                 mail = Mail(from_email, subject, to_email, content)
                 response = sg.client.mail.send.post(request_body=mail.get())
@@ -222,13 +223,13 @@ def comment_view(request):
             comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text)
             comment.save()
 
-            ctypes.windll.user32.MessageBoxW(0, u"Comment added!",
-                                             u"Keep scrolling for more.", 0)
+            ctypes.windll.user32.MessageBoxW(0, u"Keep scrolling for more.",
+                                             u"Comment added!", 0)
 
             sg = sendgrid.SendGridAPIClient(apikey=SENDGRID_API_KEY)
             from_email = Email("surbhi.sood2@gmail.com")
             to_email = Email(comment.post.user.email)
-            subject = "Ready to earn!"
+            subject = "Upload to win!"
             content = Content("text/plain", "You have a new comment on your post. Keep posting!")
             mail = Mail(from_email, subject, to_email, content)
             response = sg.client.mail.send.post(request_body=mail.get())
@@ -262,8 +263,16 @@ def logout_view(request):
     request.session.modified = True
     response = redirect("/login/")
 
-    ctypes.windll.user32.MessageBoxW(0, u"Thank you!",
-                                     u"You've been logged out successfully!", 0)
+    ctypes.windll.user32.MessageBoxW(0, u"You've been logged out successfully!",
+                                     u"Thank you!", 0)
 
     response.delete_cookie(key="session_token")
     return response
+
+
+# For viewing posts by a particular user
+
+
+def posts_of_particular_user(request,user_name):
+    posts=PostModel.objects.all().filter(user__username=user_name)
+    return render(request,'postofuser.html',{'posts':posts,'user_name':user_name})
