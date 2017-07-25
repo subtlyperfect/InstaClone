@@ -7,8 +7,18 @@
     <title>Title</title>
 
 </head>
+<style>
+    body{
+    background-image: url("https://cdn.pixabay.com/photo/2016/12/17/17/44/presents-1913987_960_720.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    }
+
+    .div-to-show{
+    background-color: rgba(150,150,150,0.5);
+</style>
 <body>
-<center>
+<center class="div-to-show">
     <form method="post" action="/post/">
         {% csrf_token %}
         <input type="submit" class="btn-default btn" value="Create Post">
@@ -22,7 +32,7 @@
 
         <h3> Posted by: {{ post.user.username }} </h3>
         <p>[{{ post.created_on }}]</p>
-        <img style="display:inline-block; width:640px; height:640px;"
+        <img style="..."
              src="{{ post.image_url }}" /><br>
         <span  style="display:inline-block;">{{ post.caption }}</span><br/><br/>
         <div style="display:inline-block">
