@@ -1,0 +1,14 @@
+# Clarifai API key.
+
+CLARIFAI_API_KEY = 'f48a604c8cee4a2f98fd3732762f5d65'
+
+
+# Sendgrid API key.
+
+SENDGRID_API_KEY = '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'
+
+
+# IMGUR Client ID and Client Secret
+
+CLIENT_ID = "e91adee0b771d94"
+CLIENT_SECRET = "1209cf48257ea56788c06e0bef09be6f9163d157"

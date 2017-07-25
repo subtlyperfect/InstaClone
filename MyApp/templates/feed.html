@@ -9,7 +9,7 @@
 </head>
 <style>
     body{
-    background-image: url("https://cdn.pixabay.com/photo/2016/12/17/17/44/presents-1913987_960_720.jpg");
+    background-image: url("{% static "feed1.jpg" %}");
     background-repeat: no-repeat;
     background-size: cover;
     }
@@ -34,9 +34,9 @@
         <p>[{{ post.created_on }}]</p>
         <img style="..."
              src="{{ post.image_url }}" /><br>
-        <span  style="display:inline-block;">{{ post.caption }}</span><br/><br/>
+        <span  style="display:inline-block;"> <h3> {{ post.caption }} </h3></span><br/><br/>
         <div style="display:inline-block">
-            {{ post.like_count }} likes this
+            {{ post.like_count }} liked this.
         </div>
         <div style="display:inline-block">
             <form method="POST" action="/like/">
