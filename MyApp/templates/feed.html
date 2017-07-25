@@ -16,6 +16,29 @@
 
     .div-to-show{
     background-color: rgba(150,150,150,0.5);
+    }
+
+    .comment{
+    margin: 10px;
+    }
+
+    .category{
+    border: 3px solid black;
+    margin: 5px;
+    }
+
+    a{
+    font-family: Comic Sans MS;
+    text-decoration: none;
+    font-size: 15px;
+    }
+
+    .post{
+    margin: 20px;
+    padding: 30px;
+    }
+
+
 </style>
 <body>
 <center class="div-to-show">
@@ -29,12 +52,21 @@
 
     {% for post in posts %}
 
-
+<div class="post">
         <h3> Posted by: {{ post.user.username }} </h3>
         <p>[{{ post.created_on }}]</p>
         <img style="..."
-             src="{{ post.image_url }}" /><br>
+             src="{{ post.image_url }}" /> <br>
         <span  style="display:inline-block;"> <h3> {{ post.caption }} </h3></span><br/><br/>
+
+
+    <div class="category">
+        <p> <h4>Categories: </h4></p>
+            {% for category in post.categories %}
+            <span> {{ category.category_text }} </span>
+            {% endfor %}
+        </div>
+
         <div style="display:inline-block">
             {{ post.like_count }} liked this.
         </div>
@@ -51,28 +83,24 @@
         </div>
 
 
-        <div>
-            <p> Categories: </p>
-            {% for category in post.categories %}
-            <span> {{ category.category_text }} </span>
+        <div class="comment">
+            {% for comment in post.comments %}
+                <p><b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
             {% endfor %}
         </div>
+
+
 
         <div>
             <form method="POST" action="/comment/">
                 {% csrf_token %}
                 <input type="hidden" name="post" value="{{ post.id }}" />
-                <input type="text" name="comment_text" id="comment_text" placeholder="Make a comment.." value="{{ comment_text }}">
+                <input type="text" name="comment_text" id="comment_text" placeholder="Post a new comment.." value="{{ comment_text }}">
                 {{ comment_text }}
                 <input type="submit" class="btn-default btn" value="Comment">
             </form>
         </div>
-
-        <div>
-            {% for comment in post.comments %}
-                <p><b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
-            {% endfor %}
-        </div>
+</div>
 
     {% endfor %}
 </center>

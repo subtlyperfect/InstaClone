@@ -4,21 +4,34 @@
 <head>
     <style>
     body{
-      text-align:center;
-      color: #B445FE;
+      text-align:left;
+      color: aliceblue;
       font-family: "Comic Sans MS";
       background-image: url("{% static "signup.jpg" %}");
       background-repeat: no-repeat;
       background-size: cover;
+      font-size: 20px;
       }
 
       #box{
-      margin: 100px auto;
+      margin: 10px auto;
+      padding: 70px;
       }
 
       a{
       text-decoration: none;
-      color: white;
+      color: skyblue;
+      }
+
+      .main{
+      font-family: Jokerman;
+      font-size: 20px;
+      padding: 10px;
+      }
+
+      #login
+      {
+      font-size: 20px;
       }
 
 
@@ -29,7 +42,7 @@
 <body>
 <div id="box">
 	<div class="main">
-            <h1> Upload to win!</h1>
+            <marquee direction="up" behavior="alternate"> <h1> UPLOAD TO WIN </h1> </marquee>
 
     </div>
 
@@ -42,7 +55,7 @@
 
     </div><br>
 
-    <div><h3>Already a user?</h3><a href="login/">Login</a> </div>
+    <div id="login"><h3>Already a user?</h3><a href="login/">Login</a> </div>
 </div>
 </body>
 </html>

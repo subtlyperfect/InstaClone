@@ -149,6 +149,8 @@ def post_view(request):
                 return redirect('/feed/')
 
         else:
+            ctypes.windll.user32.MessageBoxW(0, u"Kindly re-check.",
+                                             u"Ooops!", 0)
             form = PostForm()
         return render(request, 'post.html', {'form': form})
     else:
