@@ -3,12 +3,12 @@
 # Importing necessary modules and functions.
 
 from __future__ import unicode_literals
-from models import UserModel, SessionToken, LikeModel, CommentModel, CategoryModel, PostModel
+from models import UserModel, SessionToken, LikeModel, CommentModel, CategoryModel, PostModel, UpvoteModel
 from datetime import timedelta
 from clarifai.rest import ClarifaiApp
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm
+from forms import SignUpForm, LoginForm, LikeForm, CommentForm, PostForm, UpvoteForm
 from django.contrib.auth.hashers import make_password, check_password
 from InstaClone.settings import BASE_DIR
 from keys import CLARIFAI_API_KEY, CLIENT_SECRET, CLIENT_ID, SENDGRID_API_KEY
@@ -211,6 +211,24 @@ def like_view(request):
 
             return redirect('/feed/')
 
+    else:
+        return redirect('/login/')
+
+
+def upvote_view(request):
+    user = check_validation(request)
+    if request.method == 'POST':
+        form = UpvoteForm(request.POST)
+        if form.is_valid():
+            comment_id = form.cleaned_data.get('comment').id
+            existing_upvote = UpvoteModel.objects.filter(comment_id=comment_id, user=user).first()
+            if not existing_upvote:  # if comment is not upvoted by current user
+                UpvoteModel.objects.create(comment_id=comment_id, user=user)
+            else:
+                existing_upvote.delete()  # devote comment
+            return redirect('/feed/')
+        else:
+            return redirect('/login/')
     else:
         return redirect('/login/')
 
