@@ -54,6 +54,7 @@ def sign_up_view(request):
 
                 response = redirect('feed/')
                 return response
+
     elif request.method == "GET":
         form = SignUpForm()
 
@@ -64,8 +65,10 @@ def sign_up_view(request):
 
 def login_view(request):
     response_data = {}
+
     if request.method == "POST":
         form = LoginForm(request.POST)
+
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
@@ -101,22 +104,35 @@ def add_category(post):
 
     # Logo model
 
-    model = app.models.get('general-v1.3')
+    model = app.models.get('logo')
     response = model.predict_by_url(url=post.image_url)
 
     if response["status"]["code"] == 10000:
+
         if response["outputs"]:
+
             if response["outputs"][0]["data"]:
-                if response["outputs"][0]["data"]["concepts"]:
-                    for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
-                        category = CategoryModel(post=post, category_text = response["outputs"][0]["data"]["concepts"][index]["name"])
-                        category.save()
+
+                if response["outputs"][0]["data"]["regions"]:
+
+                    if response["outputs"][0]["data"]["regions"][0]["data"]:
+
+                        for index in range(0, len(response["outputs"][0]["data"]["regions"][0]["data"]["concepts"])):
+                            category = CategoryModel(post=post, category_text = response["outputs"][0]["data"]["regions"][0]["data"]["concepts"][index]["name"])
+                            category.save()
+
+                    else:
+                        print "No concepts list error."
+
                 else:
                     print "No concepts list error."
+
             else:
                 print "No data list error."
+
         else:
             print "No output lists error."
+
     else:
         print "Response code error."
 
@@ -127,8 +143,10 @@ def post_view(request):
     user = check_validation(request)
 
     if user:
+
         if request.method == 'POST':
             form = PostForm(request.POST, request.FILES)
+
             if form.is_valid():
                 image = form.cleaned_data.get('image')
                 caption = form.cleaned_data.get('caption')
@@ -155,6 +173,7 @@ def post_view(request):
         else:
             form = PostForm()
         return render(request, 'post.html', {'form': form})
+
     else:
         return redirect('/login/')
 
@@ -163,6 +182,7 @@ def post_view(request):
 
 def feed_view(request):
     user = check_validation(request)
+
     if user:
 
         posts = PostModel.objects.all().order_by('-created_on')
@@ -173,6 +193,7 @@ def feed_view(request):
                 post.has_liked = True
 
         return render(request, 'feed.html', {'posts': posts})
+
     else:
 
         return redirect('/login/')
@@ -182,16 +203,16 @@ def feed_view(request):
 
 def like_view(request):
     user = check_validation(request)
+
     if user and request.method == 'POST':
         form = LikeForm(request.POST)
+
         if form.is_valid():
             post_id = form.cleaned_data.get('post').id
-
             existing_like = LikeModel.objects.filter(post_id=post_id, user=user).first()
 
             if not existing_like:
                 like = LikeModel.objects.create(post_id=post_id, user=user)
-
                 ctypes.windll.user32.MessageBoxW(0, u"Keep scrolling for more.",
                                                  u"Liked!", 0)
 
@@ -217,18 +238,23 @@ def like_view(request):
 
 def upvote_view(request):
     user = check_validation(request)
+
     if request.method == 'POST':
         form = UpvoteForm(request.POST)
+
         if form.is_valid():
             comment_id = form.cleaned_data.get('comment').id
             existing_upvote = UpvoteModel.objects.filter(comment_id=comment_id, user=user).first()
+
             if not existing_upvote:  # if comment is not upvoted by current user
                 UpvoteModel.objects.create(comment_id=comment_id, user=user)
             else:
                 existing_upvote.delete()  # devote comment
             return redirect('/feed/')
+
         else:
             return redirect('/login/')
+
     else:
         return redirect('/login/')
 
@@ -237,8 +263,10 @@ def upvote_view(request):
 
 def comment_view(request):
     user = check_validation(request)
+
     if user and request.method == 'POST':
         form = CommentForm(request.POST)
+
         if form.is_valid():
             post_id = form.cleaned_data.get('post').id
             comment_text = form.cleaned_data.get('comment_text')
@@ -260,8 +288,10 @@ def comment_view(request):
             print(response.headers)
 
             return redirect('/feed/')
+
         else:
             return redirect('/feed/')
+
     else:
         return redirect('/login')
 
@@ -271,10 +301,13 @@ def comment_view(request):
 def check_validation(request):
     if request.COOKIES.get('session_token'):
         session = SessionToken.objects.filter(session_token=request.COOKIES.get('session_token')).first()
+
         if session:
             time_to_live = session.created_on + timedelta(days=1)
+
             if time_to_live > timezone.now():
                 return session.user
+
     else:
         return None
 
@@ -297,8 +330,10 @@ def logout_view(request):
 
 def posts_of_particular_user(request,user_name):
     user = check_validation(request)
+
     if user:
         posts=PostModel.objects.all().filter(user__username=user_name)
         return render(request,'postofuser.html',{'posts':posts,'user_name':user_name})
+
     else:
         return redirect('/login/')
